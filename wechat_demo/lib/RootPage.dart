@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import './page/chat_page.dart';
-import './page/discover_page.dart';
-import './page/friends_page.dart';
+import './page/discover/discover_page.dart';
+import 'page/friend/friends_page.dart';
 import './page/mine_page.dart';
 
 class RootPage extends StatefulWidget {
@@ -12,7 +12,7 @@ class RootPage extends StatefulWidget {
 }
 
 class _RootPageState extends State<RootPage> {
-  int _currentIndex = 2;
+  int _currentIndex = 3;
 
   void _onTap(int index) {
     _currentIndex = index;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wechat_demo/page/discover_cell.dart';
+import 'discover_cell.dart';
 
 class DiscoverPage extends StatefulWidget {
   const DiscoverPage({Key? key}) : super(key: key);
