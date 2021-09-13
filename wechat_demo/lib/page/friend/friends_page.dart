@@ -3,6 +3,7 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 import 'package:wechat_demo/page/const.dart';
 import 'package:wechat_demo/page/discover/discover_child_page.dart';
+import 'package:wechat_demo/page/friend/index_bar.dart';
 import 'fiends_data.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -13,12 +14,32 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  final Map _groupOffsetMap = {
+    '🔍': 0,
+  };
+  double _maxScrollerExtent = double.maxFinite;
   @override
   void initState() {
     super.initState();
     datas.sort((Friends a, Friends b) {
       return a.indexLetter!.compareTo(b.indexLetter!);
     });
+    var groupOffset = 54.0 * addressBooks.length;
+    for (var i = 0; i < datas.length; i++) {
+      // 第一个肯定有组标题
+      if (i < 1) {
+        _groupOffsetMap.addAll({datas[i].indexLetter!: groupOffset});
+        groupOffset += 30.0 + 54.0;
+      } else if (datas[i].indexLetter == datas[i - 1].indexLetter) {
+        groupOffset += 54.0;
+      } else {
+        _groupOffsetMap.addAll({datas[i].indexLetter!: groupOffset});
+        groupOffset += 30.0 + 54.0;
+      }
+    }
+    print(_groupOffsetMap);
   }
 
   Widget _cellForRow(BuildContext content, int index) {
@@ -53,6 +74,22 @@ class _FriendsPageState extends State<FriendsPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> indexWidgets = [];
+    int i = 0;
+    indexWidgets.add(Expanded(
+      child: Text(
+        '🔍',
+        style: TextStyle(fontSize: 10),
+      ),
+    ));
+    for (; i < 26; i++) {
+      var string = String.fromCharCode(i + 65);
+      indexWidgets.add(Expanded(
+          child: Text(
+        string,
+        style: TextStyle(fontSize: 10),
+      )));
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: themeColor,
@@ -82,12 +119,50 @@ class _FriendsPageState extends State<FriendsPage> {
         ),
       ),
       body: Container(
-        color: themeColor,
-        child: ListView.builder(
-          itemCount: addressBooks.length + datas.length,
-          itemBuilder: _cellForRow,
-          ),
-      ),
+          color: themeColor,
+          child: Stack(
+            children: [
+              Container(
+                child: NotificationListener(
+                  onNotification: (ScrollNotification note) {
+                    _maxScrollerExtent =
+                        note.metrics.maxScrollExtent.toDouble();
+                    return true;
+                  },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: addressBooks.length + datas.length,
+                    itemBuilder: _cellForRow,
+                  ),
+                ),
+              ),
+              IndexBar(indexBarCallBack: (String str) {
+                // print('点击了${str}');
+                if (_groupOffsetMap[str] != null) {
+                  final duration = Duration(milliseconds: 10);
+                  final curce = Curves.easeIn;
+                  if (_groupOffsetMap[str] < _maxScrollerExtent) {
+                    _scrollController.animateTo(_groupOffsetMap[str],
+                        duration: duration, curve: curce);
+                  } else {
+                    _scrollController.animateTo(_maxScrollerExtent,
+                        duration: duration, curve: curce);
+                  }
+                }
+              })
+              // Positioned(
+              //   top: screenHeight(context)/8,
+              //   right: 0,
+              //   width: 30,
+              //   height: screenHeight(context)/2,
+              //   child: Container(
+              //     color: Color.fromRGBO(1, 1, 1, 0.25),
+              //     child: Column(
+              //       children: indexWidgets,
+              //     ),
+              //   ))
+            ],
+          )),
     );
   }
 }
